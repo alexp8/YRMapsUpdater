@@ -192,10 +192,19 @@ int main(int argc, const char** argv) {
 	std::ifstream pathsIniPathOpen(pathsIniPath);
 
 	// get cncnet path from PathsYRMU.ini
-	fs::path ptmp1(std::string(buffer, GetPrivateProfileString(
-		"PATHS", "CNCNET", NULLSTR, buffer, BUFFSIZE, pathsIniPath)));
-	auto ptmp2 = ptmp1 / mapsPathRelative;
-	auto ptmp3 = ptmp1 / "INI\\MPMaps.ini";
+	fs::path ptmp1 = "NOTFOUND";
+	fs::path ptmp2 = "";
+	fs::path ptmp3 = "";
+	try
+	{
+		ptmp1 = std::string(buffer, GetPrivateProfileString(
+			"PATHS", "CNCNET", NULLSTR, buffer, BUFFSIZE, pathsIniPath));
+		ptmp2 = ptmp1 / mapsPathRelative;
+		ptmp3 = ptmp1 / "INI\\MPMaps.ini";
+	}
+	catch (...)
+	{
+	}
 	if (!(fs::exists(ptmp1) && fs::exists(ptmp2) && fs::exists(ptmp3))) {
 		std::cout << "Enter full path to CnCNet: " << std::endl;
 		std::string newPath;
@@ -392,15 +401,15 @@ int main(int argc, const char** argv) {
 		// write coop info if map is coop, check map and MPMaps for IsCoopMission
 		std::string mapCoopVal(buffer, GetPrivateProfileString(
 			"Basic", "IsCoopMission", NULLSTR, buffer, BUFFSIZE, mapPath));
-		std::transform(mapCoopVal.begin(), mapCoopVal.end(), mapCoopVal.begin(), std::tolower);
+		std::transform(mapCoopVal.begin(), mapCoopVal.end(), mapCoopVal.begin(), ::tolower);
 		std::string iniCoopVal(buffer, GetPrivateProfileString(
 			mapSection, "IsCoopMission", NULLSTR, buffer, BUFFSIZE, mpmapsOldPath));
-		std::transform(iniCoopVal.begin(), iniCoopVal.end(), iniCoopVal.begin(), std::tolower);
+		std::transform(iniCoopVal.begin(), iniCoopVal.end(), iniCoopVal.begin(), ::tolower);
 		std::vector<int> coopEnemyWaypnts; // we need a list of waypoints the player can't choose when we write starting waypoints
 		if (eqor(mapCoopVal, "yes", "true") || eqor(iniCoopVal, "yes", "true")) {
 			// regex for enemy house entry values
 			const std::basic_regex enemyHousePattern("^(\\d+,\\d+,\\d+)\\s*;?.*$");
-			
+
 			// duh
 			WritePrivateProfileString(mapSection, "IsCoopMission", "yes", mpmapsPath);
 
@@ -454,7 +463,7 @@ int main(int argc, const char** argv) {
 		size_t itterWaypnt = 0;
 		std::string mapWaypnt(buffer, GetPrivateProfileString(
 			"Waypoints", std::to_string(itterWaypnt), NULLSTR, buffer, BUFFSIZE, mapPath));
-		while (itterWaypnt <= 8 && mapWaypnt != NULLSTR) {
+		while (itterWaypnt <= 7 && mapWaypnt != NULLSTR) {
 			// only write if this waypoint doesn't belong to an enemy in coop
 			if (std::find(coopEnemyWaypnts.begin(), coopEnemyWaypnts.end(), itterWaypnt) == coopEnemyWaypnts.end())
 				WritePrivateProfileString(
@@ -463,7 +472,7 @@ int main(int argc, const char** argv) {
 			mapWaypnt = std::string(buffer, GetPrivateProfileString(
 				"Waypoints", std::to_string(itterWaypnt), NULLSTR, buffer, BUFFSIZE, mapPath));
 		}
-		WritePrivateProfileString(mapSection, "MinPlayers", "2", mpmapsPath);
+		WritePrivateProfileString(mapSection, "MinPlayers", "1", mpmapsPath);
 		WritePrivateProfileString(
 			mapSection, "MaxPlayers", std::to_string(itterWaypnt - coopEnemyWaypnts.size()), mpmapsPath);
 		WritePrivateProfileString(mapSection, "EnforceMaxPlayers", "True", mpmapsPath);

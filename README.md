@@ -1,6 +1,6 @@
 # YRMapsUpdater
 
-`YRMapsUpdater` is a command-line tool which facilitates map updates to the CnCNet Client for Yuri's Revenge. It's primary function is to read data from all maps and MPMaps.ini in order to generate a new MPMaps.ini configuration file. It also provides the option to create a list of all maps missing from versionconfig.ini.
+`YRMapsUpdater` is a command-line tool which facilitates map updates to the CnCNet Client for Yuri's Revenge. It's primary function is to read data from all maps and MPMaps.ini in order to generate a new MPMaps.ini configuration file.
 
 ### Usage
 
