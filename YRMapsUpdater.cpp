@@ -83,34 +83,6 @@ std::string str_cutends(const std::string& s, const int& left, const int& right)
 }
 
 /**
- * Capitalizes the first letter of each word in a string,
- * e.g. "hello, world!" becomes "Hello, World!".
- *
- * @param s string to capitalize.
- * @return capitalized copy of 's'.
- */
-std::string str_titlecase(std::string s) {
-	bool capNextLetter = true;
-	for (std::string::size_type i = 0; i < s.size(); ++i) {
-		if (capNextLetter) {
-			if (std::isalpha(s[i])) {
-				s[i] = std::toupper(s[i]);
-				capNextLetter = false;
-			}
-		}
-		else {
-			if (std::isalpha(s[i])) {
-				s[i] = std::tolower(s[i]);
-			}
-			else {
-				capNextLetter = true;
-			}
-		}
-	}
-	return s;
-}
-
-/**
  * https://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf#answer-14539953
  * Creates a progress bar string.
  *
@@ -224,50 +196,6 @@ int main(int argc, const char** argv) {
 	const fs::path cncnetPath = ptmp1;
 	const fs::path mapsPathFull = ptmp2;
 	const fs::path mpmapsOldPath = ptmp3;
-
-	// list new maps for versionconfig.ini
-	std::cout << "Would like to create a list of new maps and previews? [y/N] ";
-	if (get_yes_no()) {
-		// get versionconfig.ini path from PathsYRMU.ini
-		fs::path configPath(std::string(buffer, GetPrivateProfileString(
-			"PATHS", "VCONFIG", NULLSTR, buffer, BUFFSIZE, pathsIniPath)));
-		if (!(fs::exists(configPath) && configPath.filename() == "versionconfig.ini")) {
-			std::cout << "Enter full path to versionconfig.ini:" << std::endl;
-			std::string newPath;
-			std::getline(std::cin >> std::ws, newPath);
-			configPath = fs::path(newPath);
-			while (!(fs::exists(configPath) && configPath.filename() == "versionconfig.ini")) {
-				std::cout << "Invalid path, please try again:" << std::endl;
-				std::getline(std::cin >> std::ws, newPath);
-				configPath = fs::path(newPath);
-			}
-			WritePrivateProfileString("PATHS", "VCONFIG", configPath.string(), pathsIniPath);
-		}
-		std::ifstream config(configPath);
-
-		// read map and preview entries from config into a vector
-		std::vector<std::string> configEntries;
-		std::string line;
-		while (std::getline(config, line))
-			if (str_startswith(line, mapsPathRelative.string()))
-				configEntries.push_back(line);
-		config.close();
-
-		// read all maps, output to file if not in config entries
-		fs::path outPath = path_check_exists(program_path(), "versionconfig_missing.txt");
-		std::ofstream newMaps(outPath);
-		for (const auto& e : fs::recursive_directory_iterator(mapsPathFull)) {
-			fs::path dirEntry = e.path();
-			if (dirEntry.extension() == ".map" or dirEntry.extension() == ".png") {
-				std::string newEntryCandidate = str_cutends(
-					dirEntry.string(), cncnetPath.string().length() + 1, 0); // remove cncnetPath from this path
-				if (std::find(configEntries.begin(), configEntries.end(), newEntryCandidate) == configEntries.end())
-					newMaps << newEntryCandidate << std::endl; // candidate is not in config entries, write it
-			}
-		}
-		newMaps.close();
-		std::cout << "Created list of new maps and previews in " << outPath.string() << std::endl;
-	}
 
 	// getting everything we need for MPMaps
 	const fs::path mpmapsPath = program_path() / "MPMaps.ini";
@@ -495,7 +423,7 @@ int main(int argc, const char** argv) {
 		try {
 			auto mapPreviewSize = png_getsize(fs::path(mapPath).replace_extension(".png"));
 			WritePrivateProfileString(mapSection, "PreviewSize",
-				std::to_string(mapPreviewSize.first) + ',' + std::to_string(mapPreviewSize.second), mpmapsPath);
+				std::to_string(mapPreviewSize.first) + ',' + std::to_string(mapPreviewSize.second) + '\n', mpmapsPath);
 		}
 		catch (std::invalid_argument) { // couldn't find png preview, make note
 			notes.push_back("; " + mapSection + " missing PreviewSize");
