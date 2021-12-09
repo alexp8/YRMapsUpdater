@@ -395,7 +395,6 @@ int main(int argc, const char** argv) {
 		size_t pos = mapModes.find("standard");
 		if (pos != std::string::npos)
 			mapModes.replace(pos, 8, "battle");
-		mapModes = str_titlecase(mapModes);
 		WritePrivateProfileString(mapSection, "GameModes", mapModes, mpmapsPath);
 
 		// write coop info if map is coop, check map and MPMaps for IsCoopMission
